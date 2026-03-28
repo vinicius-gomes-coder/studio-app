@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,4 +8,113 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ─── Planos ──────────────────────────────────────────────────────────────────
+model Plano {
+  id             Int       @id @default(autoincrement())
+  slug           String    @unique @default(uuid())
+  nome           String
+  preco          Decimal   @db.Decimal(10, 2)
+  periodoDoPlano Int
+  usuarios       Usuario[]
+  criadoEm       DateTime  @default(now())
+  atualizadoEm   DateTime  @updatedAt
+}
+
+// ─── Usuarios ─────────────────────────────────────────────────────────────────
+model Usuario {
+  id              Int      @id @default(autoincrement())
+  slug            String   @unique @default(uuid())
+  nome            String   @unique
+  email           String   @unique
+  senha           String
+  telefone        String?
+  statusPagamento String   @default("pendente") // pendente | pago | inadimplente
+  planoId         Int?
+  plano           Plano?   @relation(fields: [planoId], references: [id])
+  criadoEm        DateTime @default(now())
+  atualizadoEm    DateTime @updatedAt
+}
+
+// ─── Fisioterapeutas ──────────────────────────────────────────────────────────
+model Fisioterapeuta {
+  id           Int      @id @default(autoincrement())
+  slug         String   @unique @default(uuid())
+  nome         String
+  crefito      String   @unique
+  agendas      Agenda[]
+  aulas        Aula[]
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+// ─── Alunos ───────────────────────────────────────────────────────────────────
+model Aluno {
+  id           Int        @id @default(autoincrement())
+  slug         String     @unique @default(uuid())
+  nome         String
+  aniversario  DateTime?
+  evolucoes    Evolucao[]
+  aulas        Aula[]     @relation("AulaAlunos")
+  agendas      Agenda[]   @relation("AgendaAlunos")
+  criadoEm     DateTime   @default(now())
+  atualizadoEm DateTime   @updatedAt
+}
+
+// ─── Equipamentos ─────────────────────────────────────────────────────────────
+model Equipamento {
+  id                Int        @id @default(autoincrement())
+  slug              String     @unique @default(uuid())
+  nome              String
+  modelo            String?
+  marca             String?
+  ultimaManutencao  DateTime?
+  proximaManutencao DateTime?
+  evolucoes         Evolucao[] @relation("EvolucaoEquipamentos")
+  criadoEm          DateTime   @default(now())
+  atualizadoEm      DateTime   @updatedAt
+}
+
+// ─── Evoluções ────────────────────────────────────────────────────────────────
+model Evolucao {
+  id              Int           @id @default(autoincrement())
+  slug            String        @unique @default(uuid())
+  evolucaoEntrada String
+  evolucaoSaida   String
+  alunoId         Int
+  aluno           Aluno         @relation(fields: [alunoId], references: [id])
+  equipamentos    Equipamento[] @relation("EvolucaoEquipamentos")
+  criadoEm        DateTime      @default(now())
+  atualizadoEm    DateTime      @updatedAt
+}
+
+// ─── Agendas ──────────────────────────────────────────────────────────────────
+model Agenda {
+  id               Int            @id @default(autoincrement())
+  slug             String         @unique @default(uuid())
+  dia              DateTime       @db.Date
+  hora             DateTime       @db.Time
+  fisioterapeutaId Int
+  fisioterapeuta   Fisioterapeuta @relation(fields: [fisioterapeutaId], references: [id])
+  alunos           Aluno[]        @relation("AgendaAlunos")
+  aula             Aula?
+  criadoEm         DateTime       @default(now())
+  atualizadoEm     DateTime       @updatedAt
+}
+
+// ─── Aulas ────────────────────────────────────────────────────────────────────
+model Aula {
+  id               Int            @id @default(autoincrement())
+  slug             String         @unique @default(uuid())
+  data             DateTime
+  tipo             String
+  status           String         @default("agendada") // agendada | realizada | cancelada
+  fisioterapeutaId Int
+  fisioterapeuta   Fisioterapeuta @relation(fields: [fisioterapeutaId], references: [id])
+  alunos           Aluno[]        @relation("AulaAlunos")
+  agendaId         Int            @unique
+  agenda           Agenda         @relation(fields: [agendaId], references: [id])
+  criadoEm         DateTime       @default(now())
+  atualizadoEm     DateTime       @updatedAt
 }
