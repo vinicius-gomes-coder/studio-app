@@ -16,7 +16,7 @@ model Plano {
   slug           String    @unique @default(uuid())
   nome           String
   preco          Decimal   @db.Decimal(10, 2)
-  periodoDoPlano Int
+  periodoDoPlano String // mensal | trimestral | semestral | anual
   usuarios       Usuario[]
   criadoEm       DateTime  @default(now())
   atualizadoEm   DateTime  @updatedAt
