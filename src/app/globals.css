@@ -83,7 +83,7 @@
     --sidebar-ring: oklch(0.542 0.034 322.5);
   }
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
